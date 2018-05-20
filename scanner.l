@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "y.tab.h"
+#include "symbols.h"
 
 #define MAX_LINE_LENG 256
 #define LIST     strcat(buf,yytext)
@@ -13,6 +14,7 @@
 #define tokenexp(i) {LIST;}
 #define tokenString(t) {LIST;}
 #define tokenStrings(t) {LIST;}
+
 char c;
 char strbuf[MAX_LINE_LENG];
 int linenum = 1;
@@ -21,6 +23,11 @@ char buf[MAX_LINE_LENG];
 char sbuf[MAX_LINE_LENG];
 char *abuf;
 char result[MAX_LINE_LENG];
+
+extern "C"{
+	int yywrap();
+	int yylex();
+}
 %}
 
 digit	[0-9_]+
@@ -78,7 +85,7 @@ do	{token(DO);}
 else	{token(ELSE);}
 enum	{token(ENUM);}     
 extern	{token(EXTERN);}
-false	{token(FALSE);yylval.Token.bval=false;yylval.Token.token_type = 3;}
+false	{yylval.Token.token_type=T_BOOL;yylval.Token.bval = false;token(FALSE);}
 float	{token(FLOAT);}
 for	{token(FOR);}
 fn	{token(FN);}
@@ -96,27 +103,26 @@ self	{token(SELF);}
 static	{token(STATIC);}
 str	{token(STR);}
 struct	{token(STRUCT);}
-true	{token(TRUE);yylval.Token.bval=true;yylval.Token.token_type = 3;}
+true	{yylval.Token.token_type=T_BOOL;yylval.Token.bval = true;token(TRUE);}
 use	{token(USE);}
 where	{token(WHERE);}
 while	{token(WHILE);}
 {ident}	{
 	tokenString(yytext);
-	yylval.Token.sval = yytext;
-	yylval.Token.token_type = 2;
+	yylval.Token.sval = strdup(yytext);
 	return(IDENTIFIER);
 }
 
 {Integer}	{
 	tokenInteger(atoi(yytext));
+	yylval.Token.token_type = T_INT;
 	yylval.Token.ival = atoi(yytext);
-	yylval.Token.token_type = 0;
 	return(INTEGER);
 }
 {Float}	{
 	tokenFloat(atof(yytext));
+	yylval.Token.token_type = T_FLOAT;
 	yylval.Token.fval = atof(yytext);
-	yylval.Token.token_type = 1;
 	return(REAL);
 }
 
@@ -143,7 +149,7 @@ while	{token(WHILE);}
 <COMMENT2>"*/"	{LIST;BEGIN 0;}
 "\""	{LIST;BEGIN COMMENT3;}
 <COMMENT3>[ \t]	{LIST;strcat(sbuf,yytext);}
-<COMMENT3>"\""	{LIST;yytext = strdup(sbuf);yylval.Token.sval=yytext;yylval.Token.token_type = 2;memset(sbuf ,'\0',MAX_LINE_LENG);BEGIN 0;return(STRING);}
+<COMMENT3>"\""	{LIST;yytext = strdup(sbuf);yylval.Token.token_type = T_STR;yylval.Token.sval = strdup(yytext);memset(sbuf ,'\0',MAX_LINE_LENG);BEGIN 0;return(STRING);}
 <COMMENT3>.	{LIST;strcat(sbuf,yytext);}
 
 

@@ -4,24 +4,30 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "symbols.h"
+#include<iostream>
+#include<vector>
+#include<string>
 
-enum TypeE{T_INT=0,T_REAL=1,T_STR=2,T_BOOL=3};
+extern "C" {
+	int yyerror(const char *s);
+	extern int yylex();
+}
 
+SymbolTables symt = SymbolTables();
 %}
 
 %union
 {
 	struct
 	{
-		union{
+		union
+		{
 			int ival;
 			bool bval;
 			char *sval;
 			float fval;
 		};
-		int token_type; // 0:int 1:float 2:bool 3:string
-		int isarr;
-		int conVar;
+		int token_type;
 	}Token;
 }
 
@@ -44,6 +50,9 @@ enum TypeE{T_INT=0,T_REAL=1,T_STR=2,T_BOOL=3};
 %token BOOL
 %token FLOAT
 
+%type<Token> exp arr_declared type interger_exp real_exp string_exp bool_exp
+
+
 
 
 //%token<vinfo> exp number int_exp bool_exp num_exp func_exp array_exp constant variable constant_exp declaration simple
@@ -60,8 +69,14 @@ enum TypeE{T_INT=0,T_REAL=1,T_STR=2,T_BOOL=3};
  
 %%
 program:	
-		normal_declared func_declared {Trace("Reducing to program\n");} |
-		func_declared{Trace("Reducing to program\n");}
+		normal_declared func_declared {
+			Trace("Reducing to program\n");
+			symt.popStack();
+		} |
+		func_declared{
+			Trace("Reducing to program\n");
+			symt.popStack();
+		}
 		;
 normal_declared:
 		 declared normal_declared{Trace("Reducing to normal_declared\n");} |
@@ -77,10 +92,25 @@ func_declared:
 			func_dec func_declared{Trace("Reducing to func_declared\n");}
 			;
 func_dec:
-			FN IDENTIFIER LEFT_PARENT  RIGHT_PARENT scope								{ Trace("Reducing to funct_dec\n"); }
-			|	FN IDENTIFIER LEFT_PARENT formal_argu RIGHT_PARENT scope					{ Trace("Reducing to funct_dec\n"); }
-			|	FN IDENTIFIER LEFT_PARENT  RIGHT_PARENT MINUS LARGER type	scope				{ Trace("Reducing to funct_dec\n"); }
-			|	FN IDENTIFIER LEFT_PARENT formal_argu RIGHT_PARENT MINUS LARGER type	scope		{ Trace("Reducing to funct_dec\n"); }
+			FN IDENTIFIER LEFT_PARENT  RIGHT_PARENT funscope{ 
+				Trace("Reducing to funct_dec\n"); 
+			}
+			| 
+			FN IDENTIFIER LEFT_PARENT formal_argu RIGHT_PARENT funscope	{ 
+				Trace("Reducing to funct_dec\n"); 
+			}
+		;
+funscope:
+		LEFT_BRACE RIGHT_BRACE{Trace("Reducing to function scope\n");} |
+		LEFT_BRACE funscopeCon RIGHT_BRACE{Trace("Reducing to function scope\n");} |
+		MINUS LARGER type LEFT_BRACE RIGHT_BRACE{Trace("Reducing to function scope\n");} |
+		MINUS LARGER type LEFT_BRACE funscopeCon RIGHT_BRACE{Trace("Reducing to function scope\n");}
+		;
+funscopeCon:
+		declared funscopeCon{Trace("Reducing to function scope content\n");} |
+		statements funscopeCon{Trace("Reducing to function scope content\n");} |
+		declared{Trace("Reducing to function scope content\n");} |
+		statements{Trace("Reducing to function scope content\n");}
 		;
 formal_argu:
 		IDENTIFIER COLON type COMMA formal_argu |
@@ -90,28 +120,114 @@ formal_argu:
 var_declared:
 		LET MUT IDENTIFIER SEMICOLON{
 			Trace("Reducing to var_declared\n");
+			varentry v = varNormal_n($3.sval,T_NO,false);
+			if(!symt.addvar(v))
+				yyerror("Error : redefined");
 		} |
 		LET MUT IDENTIFIER COLON type SEMICOLON{
 			Trace("Reducing to var_declared\n");
+			varentry v = varNormal_n($3.sval,$5.token_type,false);
+			if(!symt.addvar(v))
+				yyerror("Error : redefined");
 		} |
 		LET MUT IDENTIFIER ASSIGN exp SEMICOLON{
 			Trace("Reducing to var_declared\n");
+			varentry v = varNormal_n($3.sval,$5.token_type,false);
+			if($5.token_type==T_INT){
+				v.data.ival = $5.ival;
+			}
+			else if($5.token_type==T_FLOAT){
+				v.data.fval = $5.fval;
+			}
+			else if($5.token_type==T_STR){
+				v.data.sval = $5.sval;
+			}
+			else if($5.token_type==T_BOOL){
+				v.data.bval = $5.bval;
+			}
+			if(!symt.addvar(v))
+				yyerror("Error: redefined");
 		} |
 		LET MUT IDENTIFIER COLON type ASSIGN exp SEMICOLON{
 			Trace("Reducing to var_declared\n");
+			varentry v = varNormal($3.sval,$5.token_type,false);
+
+			if($7.token_type==T_INT && $5.token_type==T_FLOAT){
+				v.data.fval = $7.fval;
+			}
+			else if($5.token_type != $7.token_type){
+				yyerror("Error : exp type not same");
+			}
+			else if($7.token_type==T_INT){
+				v.data.ival = $7.ival;
+			}
+			else if($7.token_type==T_FLOAT){
+				v.data.fval = $7.fval;
+			}
+			else if($7.token_type==T_STR){
+				v.data.sval = $7.sval;
+			}
+			else if($7.token_type==T_BOOL){
+				v.data.bval = $7.bval;
+			}
+			if(!symt.addvar(v))
+				yyerror("Error: redefined");
 		}
 		;
 const_declared:
 		LET IDENTIFIER ASSIGN exp SEMICOLON{
 			Trace("Reducing to const_declared\n");
+			varentry v = varNormal($2.sval,$4.token_type,true);
+			if($4.token_type ==T_INT){
+				v.data.ival = $4.ival;
+			}
+			else if($4.token_type ==T_FLOAT){
+				v.data.fval = $4.fval;
+			}
+			else if($4.token_type ==T_STR){
+				v.data.sval = $4.sval;
+			}
+			else if($4.token_type ==T_BOOL){
+				v.data.bval = $4.bval;
+			}
+			if(!symt.addvar(v))
+				yyerror("Error: redefined");
 		}
 		|
 		LET IDENTIFIER COLON type ASSIGN exp SEMICOLON{
 			Trace("Reducing to const_declared\n");
+			varentry v = varNormal($2.sval,$4.token_type,true);
+
+			if($6.token_type==T_INT && $4.token_type==T_FLOAT){
+				v.data.fval = $6.ival;
+			}
+			else if($4.token_type != $6.token_type){
+				yyerror("Error : exp type not same");
+			}
+			else if($6.token_type==T_INT){
+				v.data.ival = $6.ival;
+			}
+			else if($6.token_type==T_FLOAT){
+				v.data.fval = $6.fval;
+			}
+			else if($6.token_type==T_STR){
+				v.data.sval = $6.sval;
+			}
+			else if($6.token_type==T_BOOL){
+				v.data.bval = $6.bval;
+			}
+			if(!symt.addvar(v))
+				yyerror("Error: redefined");
 		}
 		;
 arr_declared:
-		LET MUT IDENTIFIER LEFT_BRACK type COMMA interger_exp RIGHT_BRACK SEMICOLON{Trace("Reducing to arr_declared\n");}
+		LET MUT IDENTIFIER LEFT_BRACK type COMMA interger_exp RIGHT_BRACK SEMICOLON{
+			Trace("Reducing to arr_declared\n");
+			varentry v = varArr($3.sval,$5.token_type,false,$7.ival);
+
+			if(!symt.addvar(v))
+				yyerror("Error: redefined");
+		}
 		;
 scope:		
 		LEFT_BRACE content RIGHT_BRACE{
@@ -307,38 +423,33 @@ loop:
 type:		
 		BOOL{
 			Trace("Reducing to type\n");
+			$$.token_type =T_BOOL;
 		} |
 		INT{
 			Trace("Reducing to type\n");
+			$$.token_type =T_INT;
 		} |
 		STR{
 			Trace("Reducing to type\n");
+			$$.token_type =T_STR;
 		} |
 		FLOAT{
 			Trace("Reducing to type\n");
+			$$.token_type =T_FLOAT;
 		}
 		;
 %%
 
-#include "lex.yy.c"
 
-yyerror(msg)
-char *msg;
-{
-    fprintf(stderr, "%s\n", msg);
+int yyerror(const char *s){
+    fprintf(stderr, "Error: %s\n", s);
+	exit(0);
+	return 0;
 }
-allSymTab *SymbolTable = NULL;
-main(int argc,char **argv)
-{
-    /* open the source program file */
-    if (argc != 2) {
-        printf ("Usage: sc filename\n");
-        exit(1);
-    }
-    yyin = fopen(argv[1], "r");         /* open input file */
 
-    SymbolTable = CreateSt();
-    /* perform parsing */
-    if (yyparse() == 1)                 /* parsing */
-        yyerror("Parsing error !");     /* syntax error */
+int main(void)
+{
+    yyparse();
+
+	return 0;
 }

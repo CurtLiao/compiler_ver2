@@ -1,29 +1,66 @@
 #ifndef SYMBOLS_H
 #define SYMBOLS_H
+#include<stdio.h>
+#include<stdlib.h>
+#include<iostream>
+#include<string>
+#include<vector>
 
-typedef struct Nodes{
-	char *name;
+enum TYPE{
+	T_NO,T_BOOL,T_STR,T_INT,T_FLOAT,T_WRONG
+};
+typedef union{
+	int ival;
+	float fval;
+	bool bval;
+	char *sval;
+
+	int* inArr;
+	float* flArr;
+	bool* boArr;
+	char** stArr;
+}varData;
+
+typedef struct varentry{
+	std::string name;
 	int type;
-	void *value;
-	char *conOrvar;
-	struct Nodes *next;
-}Node;
-typedef struct symtab{
-	struct Nodes *Table;
-	struct symtab *next;
-}allSymTab;
+	bool isInit;
+	bool isconst;
+	bool isArr;
+	int arrSize;
 
+	union{
+		varData data;
+	};
+}varentry;
 
-Node* NodeCreate(char *id);
-Node* NodeSearch(Node *list,char *newID);
-int NodeInsert(Node *list,Node *newNode);
-Node* Create();
+varentry varNormal(std::string name, int type, bool isconst);
+varentry varNormal_n(std::string name, int type, bool isconst);
+varentry varArr(std::string name, int type, bool isconst, int arrSize);
+varentry varArr_n(std::string name, int type, bool isconst, int arrSize);
 
-void dump(Node *list);//dump link-lsit
-void tablePrint(Node *nowNode);//print value
+typedef struct{
+	std::string scopeName;
+	std::vector<varentry> varentrys;
+} SymbolTable;
 
-allSymTab* CreateSt(); //create stack
-allSymTab* Top(allSymTab *stack);//return top of stack
-void Pop(allSymTab *stack);//pop top of stack
-void insert(allSymTab *stack);//insert table to stack
+class SymbolTables
+{
+private:
+	std::vector<SymbolTable> Table;
+public:
+	SymbolTables();
+
+	int pushTable(std::string name);
+	int update_TableName(std::string name);
+	int popStack();
+	int dumpTable();
+
+	int addvar(varentry var);
+	int revVar(varentry var);
+
+	varentry lookup(std::string name);
+	varentry lookupscope(std::string name);
+	
+};
 #endif

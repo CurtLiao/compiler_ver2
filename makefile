@@ -1,17 +1,30 @@
-scanner: lex.yy.o y.tab.o symbols.o y.tab.h
-	gcc -o p symbols.o y.tab.o -ll
+CC = g++
+LEX = flex
+YACC = bison
+LEX_FILENAME = scanner.l
+YACC_FILENAME = yaccpro2.y
+OUTPUT_FILENAME = rust.exe
+TEST_FILENAME = ./test/fib.rust
+OTHER_SOURCE = symbols.cpp
 
-y.tab.h: yaccpro2.y
-	byacc -d yaccpro2.y
+$(OUTPUT_FILENAME): clean lex.yy.o y.tab.o
+	$(CC) lex.yy.o y.tab.o $(OTHER_SOURCE) -o $(OUTPUT_FILENAME)
 
-lex.yy.o: scanner.l y.tab.h
-	flex scanner.l
-	gcc -c -g lex.yy.c
-y.tab.o: y.tab.c
-	gcc -c -g y.tab.c
+lex.yy.o: lex.yy.cpp y.tab.h
+	$(CC) -c lex.yy.cpp
 
-symbols.o: symbols.c symbols.h
-	gcc -c -g symbols.c
+y.tab.o: y.tab.cpp
+	$(CC) -c y.tab.cpp
+
+y.tab.cpp y.tab.h: $(YACC_FILENAME)
+	$(YACC) -y -d $(YACC_FILENAME)
+	mv y.tab.c y.tab.cpp
+
+lex.yy.cpp: $(LEX_FILENAME)
+	$(LEX) -o lex.yy.cpp $(LEX_FILENAME)
 
 clean:
-	rm -f *.o lex.yy.c y.tab.h y.tab.c
+	rm -f lex.yy.cpp y.tab.cpp y.tab.h  *.o *.exe 
+
+run: 
+	./$(OUTPUT_FILENAME) < $(TEST_FILENAME)
