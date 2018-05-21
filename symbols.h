@@ -27,6 +27,7 @@ typedef struct varentry{
 	bool isInit;
 	bool isconst;
 	bool isArr;
+	bool isfunc;
 	int arrSize;
 
 	union{
@@ -37,7 +38,7 @@ typedef struct varentry{
 varentry varNormal(std::string name, int type, bool isconst);
 varentry varNormal_n(std::string name, int type, bool isconst);
 varentry varArr(std::string name, int type, bool isconst, int arrSize);
-varentry varArr_n(std::string name, int type, bool isconst, int arrSize);
+varentry func(std::string name,int type);
 
 typedef struct{
 	std::string scopeName;
@@ -51,13 +52,14 @@ private:
 public:
 	SymbolTables();
 
-	int pushTable(std::string name);
+	int pushStack(std::string name);
 	int update_TableName(std::string name);
 	int popStack();
 	int dumpTable();
 
 	int addvar(varentry var);
 	int revVar(varentry var);
+	int funcIn(int type);
 
 	varentry lookup(std::string name);
 	varentry lookupscope(std::string name);

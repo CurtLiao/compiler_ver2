@@ -11,7 +11,12 @@ varentry varNormal(std::string name, int type, bool isconst){
 	v.isconst = isconst;
 	v.isArr = false;
 	v.isInit = true;
+	v.isfunc = false;
 	v.arrSize = 1;
+	if(type == T_STR){
+		v.data.sval = new char[1];
+		v.data.sval[0] = '0';
+	}
 	return v;
 }
 varentry varNormal_n(std::string name, int type, bool isconst){
@@ -21,37 +26,54 @@ varentry varNormal_n(std::string name, int type, bool isconst){
 	v.isconst = isconst;
 	v.isArr = false;
 	v.isInit = false;
+	v.isfunc = false;
 	v.arrSize = 1;
+	if(type == T_STR){
+		v.data.sval = new char[1];
+		v.data.sval[0] = '0';
+	}
 	return v;
 }
 varentry varArr(std::string name, int type, bool isconst, int arrSize){
 	varentry v;
 	v.name = name;
 	v.type = type;
+	v.data.ival = 0;
 	v.isconst = isconst;
 	v.isArr = true;
 	v.isInit = true;
+	v.isfunc = false;
 	v.arrSize = arrSize;
+	if(type == T_STR){
+		v.data.sval = new char[1];
+		v.data.sval[0] = '0';
+	}
 	return v;
 }
 
-varentry varArr_n(std::string name, int type, bool isconst, int arrSize){
+varentry func(std::string name,int type){
 	varentry v;
 	v.name = name;
 	v.type = type;
-	v.isconst = isconst;
-	v.isArr = true;
-	v.isInit = false;
-	v.arrSize = arrSize;
+	v.data.ival = 0;
+	v.isArr = false;
+	v.isInit = true;
+	v.isconst = false;
+	v.arrSize = 1;
+	if(type == T_STR){
+		v.data.sval = new char[1];
+		v.data.sval[0] = '0';
+	}
 	return v;
 }
+
 SymbolTables::SymbolTables(){
 
 	SymbolTable symboltable;
 	symboltable.scopeName = "global";
 	Table.push_back(symboltable);
 }
-int SymbolTables::pushTable(std::string name){
+int SymbolTables::pushStack(std::string name){
 	
 	SymbolTable symboltable;
 	symboltable.scopeName = name;
@@ -71,16 +93,17 @@ int SymbolTables::dumpTable(){
 		varentry v = Table.back().varentrys[i];
 		for(int k = 0;k < v.arrSize;k++){
 			if(k!=0){
-				if(v.isconst==true)
-					std::cout<<"Constant"<<'\t';
-				else
-					std::cout<<"Variable"<<'\t';    //dont understand
+				std::cout<<"-----------"<<'\t';
 			}
 			else{
-				if(v.isconst==true)
-					std::cout<<"Constant"<<'\t';
-				else
-					std::cout<<"Variable"<<'\t';
+				if(v.isfunc==true)
+					std::cout<<"funciotn"<<'\t';
+				else{
+					if(v.isconst==true)
+						std::cout<<"Constant"<<'\t';
+					else
+						std::cout<<"Variable"<<'\t';
+				}
 			}
 			if(v.type==T_NO){
 				std::cout<< "none"<<'\t';
@@ -142,8 +165,7 @@ int SymbolTables::dumpTable(){
 				std::cout<<"string"<<'\t';
 				if(v.isArr){
 					std::cout<<v.name<<'['<< k << ']'<<'\t';
-					if(v.isInit)
-						std::cout<< v.data.stArr[k]<<'\n';
+					if(v.isInit);
 					else
 						std::cout<<"?"<<'\n';
 				}
@@ -169,6 +191,7 @@ int SymbolTables::addvar(varentry var){
 	}
 	return 1;
 }
+
 int SymbolTables::revVar(varentry var){
 	for(int i =Table.size();i>=0;i--){
 		for(int k=0;k<Table.size();k++){
@@ -179,6 +202,15 @@ int SymbolTables::revVar(varentry var){
 				}
 			}
 		}
+	}
+	return 0;
+}
+
+int SymbolTables::funcIn(int type){
+	Table[Table.size()-2].varentrys.back().type = type;
+	if(type == T_STR){
+		Table[Table.size()-2].varentrys.back().data.sval = new char[1];
+		Table[Table.size()-2].varentrys.back().data.sval[0]='0';
 	}
 }
 
