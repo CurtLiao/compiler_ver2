@@ -43,6 +43,7 @@ SymbolTables symt = SymbolTables();
 %token<Token> INTEGER
 %token<Token> REAL
 %token<Token> STRING
+
 %token TRUE
 %token FALSE
 %token STR
@@ -93,7 +94,7 @@ func_declared:
 			;
 func_dec:
 			FN IDENTIFIER LEFT_PARENT { 
-										Trace("Reducing to funct_dec\n");
+										Trace("Reducing to func_dec\n");
 										varentry v = func($2.sval,T_NO);
 										if(!symt.addvar(v)){
 											yyerror("Error: redefined");
@@ -102,7 +103,7 @@ func_dec:
 			}
 			formal_argu RIGHT_PARENT func_type
 			func_scope	{ 
-				Trace("Reducing to funct_dec\n");
+				Trace("Reducing to func_dec\n");
 				symt.popStack(); 
 			}
 			;
@@ -117,7 +118,7 @@ func_type:
 			symt.funcIn($3.token_type);
 		} |
 		%empty{
-			Trace("Reducing to func type\n");
+			Trace("Reducing to func type nothing\n");
 		}
 		;
 formal_argu:
@@ -155,7 +156,7 @@ var_declared:
 		} |
 		LET MUT IDENTIFIER ASSIGN exp SEMICOLON{
 			Trace("Reducing to var_declared\n");
-			varentry v = varNormal_n($3.sval,$5.token_type,false);
+			varentry v = varNormal($3.sval,$5.token_type,false);
 			if($5.token_type==T_INT){
 				v.data.ival = $5.ival;
 			}
@@ -273,19 +274,19 @@ arr_declared:
 		;
 content:
 		declared content{
-			Trace("Reducing to content\n");
+			Trace("Reducing to content declared content\n");
 		}
 		|
 		statements content{
-			Trace("Reducing to content\n");
+			Trace("Reducing to content statements  content\n");
 		}
 		|
 		declared{
-			Trace("Reducing to content\n");
+			Trace("Reducing to content declared\n");
 		}
 		|
 		statements{
-			Trace("Reducing to content\n");
+			Trace("Reducing to content statements\n");
 		}
 		|
 		%empty{
@@ -304,100 +305,38 @@ statements:
 statement:
 		IDENTIFIER ASSIGN exp SEMICOLON{
 			Trace("Reducing to statement\n");
-			/*varentry v = symt.lookup($1.sval);
-			v.isInit = true;
-			if(v.type==T_WRONG){
-				yyerror("Error identifier not exist");
-			}
-			else if(v.type==T_INT){
-				v.data.ival = $3.ival;
-			}
-			else if(v.type==T_FLOAT && $3.token_type==T_INT){
-				v.data.fval = $3.ival;
-			}
-			else if(v.type!=$3.token_type){
-				yyerror("type not the same");
-			}
-			else if(v.type==T_BOOL){
-				v.data.bval = $3.bval;
-			}
-			else if(v.type==T_STR){
-				v.data.sval = $3.sval;
-			}
-			else if(v.type==T_FLOAT){
-				v.data.fval = $3.fval;
-			}
-			else if(v.type==T_NO){
-				v.type = $3.token_type;
-			}
-			symt.revVar(v);*/
 		} |
 		IDENTIFIER LEFT_BRACK interger_exp RIGHT_BRACK ASSIGN exp SEMICOLON{
 			Trace("Reducing to statement\n");
-			/*varentry v = symt.lookup($1.sval);
-			int index = $3.ival;
-			if($3.token_type!=T_INT){
-				yyerror("array index type wrong");
-			}
-			
-			if(v.type==T_WRONG)
-				yyerror("Error identifier not exist");
-			else if(!v.isArr)
-				yyerror("Error not array");
-			else if(index>=v.arrSize)
-				yyerror("Error out of range");
-			else{
-				v.isInit = ture;
-				if(v.type==T_FLOAT && $6.token_type==T_INT)
-					v.data.flArr[index]=$6.ival;
-				else if(v.type!=$6.token_type)
-					yyerror("type not the same");
-				else if(v.type==T_INT)
-					v.data.inArr[index]=$6.ival;
-				else if(v.type==T_STR)
-					v.data.stArr[index]=$6.sval;
-				else if(v.type==T_FLOAT)
-					v.data.flArr[index]=$6.fval;
-				else if(v.type==T_BOOL)
-					v.data.boArr[index]=$6.bval;
-				symt.revVar(v);
-			}*/
 		} |
 		PRINT exp SEMICOLON{
-			Trace("Reducing to statement\n");
+			Trace("Reducing to statement print\n");
 		} |
 		PRINTLN exp SEMICOLON{
-			Trace("Reducing to statement\n");
+			Trace("Reducing to statement println\n");
 		} |
 		RETURN exp SEMICOLON{
-			Trace("Reducing to statement\n");
+			Trace("Reducing to statement return\n");
 		} |
 		RETURN SEMICOLON{
-			Trace("Reducing to statement\n");
+			Trace("Reducing to statement return\n");
 		} |
 		block{
 			Trace("Reducing to statement\n");
 		} |
 		conditionl{
-			Trace("Reducing to statement\n");
+			Trace("Reducing to statement conditional\n");
 		} |
 		loop{
-			Trace("Reducing to statement\n");
+			Trace("Reducing to statement loop\n");
 		} |
 		func_invoke{
-			Trace("Reducing to statement\n");
+			Trace("Reducing to statement func_invoke\n");
 		}
 		;
 exp:
 	MINUS exp %prec UMINUS{
 		Trace("Reducing to exp\n");
-		/*$$=$2;
-		if($2.token_type==T_INT)
-			$2.ival = $2.ival*(-1);
-		else if($2.token_type==T_FLOAT)
-			$2.fval = $2.fval*(-1);
-		else	
-			yyerror("minus arg type error");*/
 	} |
 	exp PLUS exp{
 		Trace("Reducing to exp\n");
@@ -452,27 +391,31 @@ real_exp:
 bool_exp:	
 		TRUE{
 			Trace("Reducing to bool_exp\n");
+			$$.token_type = T_BOOL;
+			$$.bval = true;
 		} |
 		FALSE{
 			Trace("Reducing to bool_exp\n");
+			$$.token_type = T_BOOL;
+			$$.bval = false;
 		} |
 		LOGICAL_NOT exp{
-			Trace("Reducing to bool_exp\n");
+			Trace("Reducing to bool_exp not\n");
 		} |
 		exp LESS exp{
-			Trace("Reducing to bool_exp\n");
+			Trace("Reducing to bool_exp less\n");
 		} |
 		exp LARGER exp{
-			Trace("Reducing to bool_exp\n");
+			Trace("Reducing to bool_exp larger\n");
 		} |
 		exp LOGICAL_AND exp{
-			Trace("Reducing to bool_exp\n");
+			Trace("Reducing to bool_exp and\n");
 		} |
 		exp LOGICAL_OR exp{
-			Trace("Reducing to bool_exp\n");
+			Trace("Reducing to bool_exp or\n");
 		} |
 		exp LOGICAL_NOT exp{
-			Trace("Reducing to bool_exp\n");
+			Trace("Reducing to bool_exp not\n");
 		} |
 		exp LARGEREQ exp{
 			Trace("Reducing to bool_exp larger eq\n");
@@ -481,7 +424,7 @@ bool_exp:
 			Trace("Reducing to  less eq\n");
 		} |
 		exp NOTEQ exp{
-			Trace("Reducing to bool_exp\n");
+			Trace("Reducing to bool_exp not eq\n");
 		} 
 		;
 string_exp:
@@ -496,11 +439,11 @@ func_invoke:
 		;
 parameters:
 		exp COMMA parameters{
-			Trace("Reducing to parameters\n");
+			Trace("Reducing to parameter\n");
 		}
 		|
 		exp{
-			Trace("Reducing to parameters\n");
+			Trace("Reducing to parameter\n");
 		}
 		;
 block:
@@ -529,19 +472,19 @@ loop:
 	;
 type:		
 		BOOL{
-			Trace("Reducing to type\n");
+			Trace("Reducing to type bool\n");
 			$$.token_type =T_BOOL;
 		} |
 		INT{
-			Trace("Reducing to type\n");
+			Trace("Reducing to type int\n");
 			$$.token_type =T_INT;
 		} |
 		STR{
-			Trace("Reducing to type\n");
+			Trace("Reducing to type string\n");
 			$$.token_type =T_STR;
 		} |
 		FLOAT{
-			Trace("Reducing to type\n");
+			Trace("Reducing to type float\n");
 			$$.token_type =T_FLOAT;
 		}
 		;

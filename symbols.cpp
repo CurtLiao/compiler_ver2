@@ -5,7 +5,7 @@
 
 using namespace std;
 
-varentry varNormal(std::string name, int type, bool isconst){
+varentry varNormal(string name, int type, bool isconst){
 	varentry v;
 	v.name = name;
 	v.type = type;
@@ -20,7 +20,7 @@ varentry varNormal(std::string name, int type, bool isconst){
 	}
 	return v;
 }
-varentry varNormal_n(std::string name, int type, bool isconst){
+varentry varNormal_n(string name, int type, bool isconst){
 	varentry v;
 	v.name = name;
 	v.type = type;
@@ -35,7 +35,7 @@ varentry varNormal_n(std::string name, int type, bool isconst){
 	}
 	return v;
 }
-varentry varArr(std::string name, int type, bool isconst, int arrSize){
+varentry varArr(string name, int type, bool isconst, int arrSize){
 	varentry v;
 	v.name = name;
 	v.type = type;
@@ -52,7 +52,7 @@ varentry varArr(std::string name, int type, bool isconst, int arrSize){
 	return v;
 }
 
-varentry func(std::string name,int type){
+varentry func(string name,int type){
 	varentry v;
 	v.name = name;
 	v.type = type;
@@ -75,14 +75,11 @@ SymbolTables::SymbolTables(){
 	symboltable.scopeName = "global";
 	Table.push_back(symboltable);
 }
-int SymbolTables::pushStack(std::string name){
+int SymbolTables::pushStack(string name){
 	
 	SymbolTable symboltable;
 	symboltable.scopeName = name;
 	Table.push_back(symboltable);
-}
-int SymbolTables::update_TableName(std::string name){
-	Table.back().scopeName = name;
 }
 
 int SymbolTables::popStack(){
@@ -90,100 +87,100 @@ int SymbolTables::popStack(){
 	Table.pop_back();
 }
 int SymbolTables::dumpTable(){
-	std::cout<<"-----------------------------------------"<< endl;
-	std::cout<<"Scope: "<<Table.back().scopeName << '\n'<<"SymbolTable:"<<endl;
+	cout<<"------------------------------------------"<< endl;
+	cout<<"Scope: "<<Table.back().scopeName << endl<<"SymbolTable:"<<endl;
 	cout<<"conORvarORfun"<<'\t'<<"type"<<'\t'<<"name"<<'\t'<<"value:"<<endl;
 	for(int i = 0;i < Table.back().varentrys.size();i++){
 		varentry v = Table.back().varentrys[i];
 		for(int k = 0;k < v.arrSize;k++){
 			if(k!=0){
-				std::cout<<"ARRAY:"<< k <<'\t'<<'\t';
+				cout<<"ARRAY:"<< k <<'\t'<<'\t';
 			}
 			else{
 				if(v.isfunc==true)
-					std::cout<<"function"<<'\t';
+					cout<<"function"<<'\t';
 				else{
 					if(v.isconst==true)
-						std::cout<<"constant"<<'\t';
+						cout<<"constant"<<'\t';
 					else
-						std::cout<<"variable"<<'\t';
+						cout<<"variable"<<'\t';
 				}
 			}
 			if(v.type==T_NO){
-				std::cout<< "Notype"<<'\t';
-				std::cout<<v.name<<'\t';
-				std::cout<<"null"<<'\n';
+				cout<< "Notype"<<'\t';
+				cout<<v.name<<'\t';
+				cout<<"null"<<endl;
 			}
 			else if(v.type==T_INT){
-				std::cout<<"int"<<'\t';
+				cout<<"int"<<'\t';
 				if(v.isArr){
-					std::cout<<v.name<<'['<< k << ']'<<'\t';
+					cout<<v.name<<'['<< k << ']'<<'\t';
 					if(v.isInit)
-						std::cout<< v.data.inArr[k]<<'\n';
+						cout<< v.data.inArr[k]<<endl;
 					else
-						std::cout<<"null"<<'\n';
+						cout<<"null"<<endl;
 				}
 				else{
-					std::cout<<v.name<<'\t';
+					cout<<v.name<<'\t';
 					if(v.isInit)
-						std::cout<<v.data.ival<<'\n';
+						cout<<v.data.ival<<endl;
 					else
-						std::cout<<"null"<<'\n';
+						cout<<"null"<<endl;
 				}
 			}
 			else if(v.type==T_FLOAT){
-				std::cout<<"float"<<'\t';
+				cout<<"float"<<'\t';
 				if(v.isArr){
-					std::cout<<v.name<<'['<< k << ']'<<'\t';
+					cout<<v.name<<'['<< k << ']'<<'\t';
 					if(v.isInit)
-						std::cout<< v.data.flArr[k]<<'\n';
+						cout<< v.data.flArr[k]<<endl;
 					else
-						std::cout<<"null"<<'\n';
+						cout<<"null"<<endl;
 				}
 				else{
-					std::cout<<v.name<<'\t';
+					cout<<v.name<<'\t';
 					if(v.isInit)
-						std::cout<<v.data.fval<<'\n';
+						cout<<v.data.fval<<endl;
 					else
-						std::cout<<"null"<<'\n';
+						cout<<"null"<<endl;
 				}
 			}
 			else if(v.type==T_BOOL){
-				std::cout<<"bool"<<'\t';
+				cout<<"bool"<<'\t';
 				if(v.isArr){
-					std::cout<<v.name<<'['<< k << ']'<<'\t';
+					cout<<v.name<<'['<< k << ']'<<'\t';
 					if(v.isInit)
-						std::cout<< v.data.boArr[k]<<'\n';
+						cout<< v.data.boArr[k]<<endl;
 					else 
-						std::cout<<"null"<<'\n';
+						cout<<"null"<<endl;
 				}
 				else{
-					std::cout<<v.name<<'\t';
+					cout<<v.name<<'\t';
 					if(v.isInit)
-						std::cout<<v.data.fval<<'\n';
+						cout<<v.data.bval<<endl;
 					else
-						std::cout<<"null"<<'\n';
+						cout<<"null"<<endl;
 				}
 			}
 			else if(v.type==T_STR){
-				std::cout<<"string"<<'\t';
+				cout<<"string"<<'\t';
 				if(v.isArr){
-					std::cout<<v.name<<'['<< k << ']'<<'\t';
+					cout<<v.name<<'['<< k << ']'<<'\t';
 					if(v.isInit);
 					else
-						std::cout<<"?"<<'\n';
+						cout<<"null"<<endl;
 				}
 				else{
-					std::cout<<v.name<<'\t';
+					cout<<v.name<<'\t';
 					if(v.isInit)
-						std::cout<<v.data.sval<<'\n';
+						cout<<v.data.sval<<endl;
 					else
-						std::cout<<"null"<<'\n';
+						cout<<"null"<<endl;
 				}
 			}
 		}
 	}
-	std::cout<<"------------------------------------------"<<'\n';
+	cout<<"------------------------------------------"<<endl;
 }
 
 int SymbolTables::addvar(varentry var){
@@ -218,7 +215,7 @@ int SymbolTables::funcIn(int type){
 	}
 }
 
-varentry SymbolTables::lookup(std::string name){
+varentry SymbolTables::lookup(string name){
 	for(int i =Table.size()-1;i>=0;i--){
 		for(int k=0;k<Table[i].varentrys.size();k++){
 			varentry v = Table[i].varentrys[k];
@@ -232,7 +229,7 @@ varentry SymbolTables::lookup(std::string name){
 	return notexist;
 }
 
-varentry SymbolTables::lookupscope(std::string name){
+varentry SymbolTables::lookupscope(string name){
 	for(int i=0;i<Table.back().varentrys.size();i++){
 		varentry v = Table.back().varentrys[i];
 		if(v.name==name)

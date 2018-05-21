@@ -5,6 +5,7 @@
 #include<iostream>
 #include<string>
 #include<vector>
+using namespace std;
 
 enum TYPE{
 	T_NO,T_BOOL,T_STR,T_INT,T_FLOAT,T_WRONG
@@ -22,7 +23,7 @@ typedef union{
 }varData;
 
 typedef struct varentry{
-	std::string name;
+	string name;
 	int type;
 	bool isInit;
 	bool isconst;
@@ -35,25 +36,25 @@ typedef struct varentry{
 	};
 }varentry;
 
-varentry varNormal(std::string name, int type, bool isconst);
-varentry varNormal_n(std::string name, int type, bool isconst);
-varentry varArr(std::string name, int type, bool isconst, int arrSize);
-varentry func(std::string name,int type);
+varentry varNormal(string name, int type, bool isconst);
+varentry varNormal_n(string name, int type, bool isconst);
+varentry varArr(string name, int type, bool isconst, int arrSize);
+varentry func(string name,int type);
 
 typedef struct{
-	std::string scopeName;
-	std::vector<varentry> varentrys;
+	string scopeName;
+	vector<varentry> varentrys;
 } SymbolTable;
 
 class SymbolTables
 {
 private:
-	std::vector<SymbolTable> Table;
+	vector<SymbolTable> Table;
 public:
 	SymbolTables();
 
-	int pushStack(std::string name);
-	int update_TableName(std::string name);
+	int pushStack(string name);
+	
 	int popStack();
 	int dumpTable();
 
@@ -61,8 +62,8 @@ public:
 	int revVar(varentry var);
 	int funcIn(int type);
 
-	varentry lookup(std::string name);
-	varentry lookupscope(std::string name);
+	varentry lookup(string name);
+	varentry lookupscope(string name);
 	
 };
 #endif

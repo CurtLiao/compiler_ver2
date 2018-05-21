@@ -3,7 +3,7 @@ LEX = flex
 YACC = bison
 LEX_FILENAME = scanner.l
 YACC_FILENAME = yaccpro2.y
-OUTPUT_FILENAME = rust.exe
+OUTPUT_FILENAME = output.exe
 TEST_FILENAME = ./test/fib.rust
 OTHER_SOURCE = symbols.cpp
 

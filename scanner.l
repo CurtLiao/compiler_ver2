@@ -131,7 +131,7 @@ while	{token(WHILE);}
 <COMMENT1>.	{LIST;}
 <COMMENT1>\n	{
 	LIST;
-	//printf("%d:%s", linenum, buf);
+	printf("%d:%s", linenum, buf);
 	linenum++;
 	buf[0] = '\0';
 	BEGIN 0;
@@ -142,7 +142,7 @@ while	{token(WHILE);}
 <COMMENT2>.	{LIST;}
 <COMMENT2>\n	{
 	LIST;
-	//printf("%d:%s", linenum, buf);  
+	printf("%d:%s", linenum, buf);  
 	linenum++;
 	buf[0] = '\0';
 }
