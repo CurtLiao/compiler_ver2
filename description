@@ -1,0 +1,10 @@
+1.Scanner need to change:
+	a.Remove main in scanner,there is a main in yacc.
+	b.I need to print something that you read in test file originally,but now I need to return it let yacc can find those tokens.
+	c.If yacc need some value,like integer,real,string, I need to use yylval to passing the value.
+	d.need to include y.tab.h and symbols.h(symbol_table file),because I write symbol_table file separately.
+2.How to use:
+	a.goto the folder that my file in and type "make".
+	b.it will compile yacc, scanner, symbols file,and generate a output.exe.
+	c.type ./output.exe < "test_file_name",and watch result.
+	d.type "make clean" and it will delete some file that generate before, and type make to recompile.
