@@ -3,6 +3,7 @@
 #include<stdio.h>
 #include<vector>
 
+using namespace std;
 
 varentry varNormal(std::string name, int type, bool isconst){
 	varentry v;
@@ -59,6 +60,7 @@ varentry func(std::string name,int type){
 	v.isArr = false;
 	v.isInit = true;
 	v.isconst = false;
+	v.isfunc = true;
 	v.arrSize = 1;
 	if(type == T_STR){
 		v.data.sval = new char[1];
@@ -88,7 +90,9 @@ int SymbolTables::popStack(){
 	Table.pop_back();
 }
 int SymbolTables::dumpTable(){
-	std::cout<<"Scope: "<<Table.back().scopeName << '\n';
+	std::cout<<"-----------------------------------------"<< endl;
+	std::cout<<"Scope: "<<Table.back().scopeName << '\n'<<"SymbolTable:"<<endl;
+	cout<<"conORvarORfun"<<'\t'<<"type"<<'\t'<<"name"<<'\t'<<"value:"<<endl;
 	for(int i = 0;i < Table.back().varentrys.size();i++){
 		varentry v = Table.back().varentrys[i];
 		for(int k = 0;k < v.arrSize;k++){
@@ -97,16 +101,16 @@ int SymbolTables::dumpTable(){
 			}
 			else{
 				if(v.isfunc==true)
-					std::cout<<"funciotn"<<'\t';
+					std::cout<<"function"<<'\t';
 				else{
 					if(v.isconst==true)
-						std::cout<<"Constant"<<'\t';
+						std::cout<<"constant"<<'\t';
 					else
-						std::cout<<"Variable"<<'\t';
+						std::cout<<"variable"<<'\t';
 				}
 			}
 			if(v.type==T_NO){
-				std::cout<< "none"<<'\t';
+				std::cout<< "Notype"<<'\t';
 				std::cout<<v.name<<'\t';
 				std::cout<<"null"<<'\n';
 			}
