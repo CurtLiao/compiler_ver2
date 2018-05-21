@@ -1,5 +1,6 @@
 %{  
 #define Trace(t)        printf(t)
+//#define Trace(t)
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -8,15 +9,15 @@
 #include<vector>
 #include<string>
 
-extern "C" {
+extern "C" {							 //use C++
 	int yyerror(const char *s);
 	extern int yylex();
 }
 
-SymbolTables symt = SymbolTables();
+SymbolTables symt = SymbolTables();      //create symbol_table
 %}
 
-%union
+%union									//def struct for value passing
 {
 	struct
 	{
@@ -51,15 +52,15 @@ SymbolTables symt = SymbolTables();
 %token BOOL
 %token FLOAT
 
-%type<Token> exp arr_declared type interger_exp real_exp string_exp bool_exp func_invoke
+%type<Token> exp arr_declared type interger_exp real_exp string_exp bool_exp func_invoke     //def grammar type for return
 
 
 
 
-//%token<vinfo> exp number int_exp bool_exp num_exp func_exp array_exp constant variable constant_exp declaration simple
 
-%start program
-%left LOGICAL_OR
+
+%start program							//start grammar
+%left LOGICAL_OR						// precedence
 %left LOGICAL_AND
 %left LOGICAL_NOT
 %left NOTEQ LARGEREQ LESSEQ LARGER LESS EQ
@@ -70,7 +71,7 @@ SymbolTables symt = SymbolTables();
  
 %%
 program:	
-		normal_declared func_declared {
+		normal_declared func_declared {						//from normal declare or function declare reduce to program and pop table stack and print
 			Trace("Reducing to program\n");
 			symt.popStack();
 		} |
@@ -78,22 +79,28 @@ program:
 			Trace("Reducing to program\n");
 			symt.popStack();
 		}
+		;													
+normal_declared:															
+		declared normal_declared{															//from declare or normal declare reduce
+			 Trace("Reducing to normal_declared\n");
+		} |   
+		declared{Trace("Reducing to normal_declared\n");}
 		;
-normal_declared:
-		 declared normal_declared{Trace("Reducing to normal_declared\n");} |
-		 declared{Trace("Reducing to normal_declared\n");}
-		 ;
-declared:
-		const_declared{Trace("Reducing to declared\n");} |
+declared:																	
+		const_declared{																		//from variable constant or array declare reduce
+			Trace("Reducing to declared\n");
+		} |
 		var_declared{Trace("Reducing to declared\n");} |
 		arr_declared{Trace("Reducing to declared\n");}
 		;
-func_declared:
-			func_dec{Trace("Reducing to func_declared\n");} |
+func_declared:																
+			func_dec{																			//from function declare reduce
+				Trace("Reducing to func_declared\n");
+			} |
 			func_dec func_declared{Trace("Reducing to func_declared\n");}
 			;
-func_dec:
-			FN IDENTIFIER LEFT_PARENT { 
+func_dec:																		
+			FN IDENTIFIER LEFT_PARENT { 													//declare function with formal_argu or not, and put function name into symbol table
 										Trace("Reducing to func_dec\n");
 										varentry v = func($2.sval,T_NO);
 										if(!symt.addvar(v)){
@@ -107,13 +114,13 @@ func_dec:
 				symt.popStack(); 
 			}
 			;
-func_scope:
-		LEFT_BRACE content RIGHT_BRACE{
+func_scope:																
+		LEFT_BRACE content RIGHT_BRACE{																//declare code that write in the function
 			Trace("Reducing to func scope\n");
 		}
 		;
-func_type:
-		MINUS LARGER type{
+func_type:																	
+		MINUS LARGER type{													//def function type and return to symbol table
 			Trace("Reducing to func type -> type\n");
 			symt.funcIn($3.token_type);
 		} |
@@ -121,8 +128,8 @@ func_type:
 			Trace("Reducing to func type nothing\n");
 		}
 		;
-formal_argu:
-		%empty{
+formal_argu:																
+		%empty{																		//some argument in function, return its name,type,is initial or not
 			Trace("Reducing to formal argu\n");
 		} |
 		IDENTIFIER COLON type COMMA formal_argu{
@@ -141,9 +148,9 @@ formal_argu:
 		}
 		;
 
-var_declared:
-		LET MUT IDENTIFIER SEMICOLON{
-			Trace("Reducing to var_declared\n");
+var_declared:																			
+		LET MUT IDENTIFIER SEMICOLON{													//variable declare, return its name type value initial or not, put into symbol table
+			Trace("Reducing to var_declared\n");										//if redefined,error
 			varentry v = varNormal_n($3.sval,T_NO,false);
 			if(!symt.addvar(v))
 				yyerror("Error : redefined");
@@ -199,9 +206,9 @@ var_declared:
 		}
 		;
 const_declared:
-		LET IDENTIFIER ASSIGN exp SEMICOLON{
-			Trace("Reducing to const_declared\n");
-			varentry v = varNormal($2.sval,$4.token_type,true);
+		LET IDENTIFIER ASSIGN exp SEMICOLON{													
+			Trace("Reducing to const_declared\n");									//constant declare, return its name type value initial or not, put into symbol table
+			varentry v = varNormal($2.sval,$4.token_type,true);						//if redefined,error
 			if($4.token_type ==T_INT){
 				v.data.ival = $4.ival;
 			}
@@ -245,7 +252,7 @@ const_declared:
 		}
 		;
 arr_declared:
-		LET MUT IDENTIFIER LEFT_BRACK type COMMA interger_exp RIGHT_BRACK SEMICOLON{
+		LET MUT IDENTIFIER LEFT_BRACK type COMMA interger_exp RIGHT_BRACK SEMICOLON{	//array declare, return its name type value initial or not,array index, put into symbol table
 			Trace("Reducing to arr_declared\n");
 			varentry v = varArr($3.sval,$5.token_type,false,$7.ival);
 			int arrIndex = $7.ival;
@@ -272,7 +279,7 @@ arr_declared:
 				yyerror("Error: redefined");
 		}
 		;
-content:
+content:															
 		declared content{
 			Trace("Reducing to content declared content\n");
 		}
@@ -302,8 +309,8 @@ statements:
 				Trace("Reducing to statements\n");
 			}
 			;
-statement:
-		IDENTIFIER ASSIGN exp SEMICOLON{
+statement:																	
+		IDENTIFIER ASSIGN exp SEMICOLON{							//statement include identifier reassign, print/println expression, return, block, if else,while loop, function invoke
 			Trace("Reducing to statement\n");
 		} |
 		IDENTIFIER LEFT_BRACK interger_exp RIGHT_BRACK ASSIGN exp SEMICOLON{
@@ -335,7 +342,7 @@ statement:
 		}
 		;
 exp:
-	MINUS exp %prec UMINUS{
+	MINUS exp %prec UMINUS{							//for expression action include +-*/% and integer,real,string,bool
 		Trace("Reducing to exp\n");
 	} |
 	exp PLUS exp{
@@ -379,17 +386,17 @@ exp:
 	}
 	;
 interger_exp:	
-		INTEGER{
+		INTEGER{														//for integer
 			Trace("Reducing to interger_exp\n");
 		}
 		;
 real_exp:
-		REAL{
+		REAL{														//for real
 			Trace("Reducing to real_exp\n");
 		}
 		;
 bool_exp:	
-		TRUE{
+		TRUE{														//for boolean true,false, logical and/or/not, >, =, <, >=, <=, !=, ! 
 			Trace("Reducing to bool_exp\n");
 			$$.token_type = T_BOOL;
 			$$.bval = true;
@@ -427,18 +434,18 @@ bool_exp:
 			Trace("Reducing to bool_exp not eq\n");
 		} 
 		;
-string_exp:
-		STRING{
+string_exp:			
+		STRING{																		//for string
 			Trace("Reducing to string_exp\n");
 		}
 		;
 func_invoke:
-		IDENTIFIER LEFT_PARENT parameters RIGHT_PARENT{
+		IDENTIFIER LEFT_PARENT parameters RIGHT_PARENT{											
 			Trace("Reducing to func_invoke\n");
 		}
 		;
 parameters:
-		exp COMMA parameters{
+		exp COMMA parameters{							//function invoke's parameters
 			Trace("Reducing to parameter\n");
 		}
 		|
@@ -446,8 +453,8 @@ parameters:
 			Trace("Reducing to parameter\n");
 		}
 		;
-block:
-	 LEFT_BRACE{
+block:												
+	 LEFT_BRACE{																			//when see the { push table to stack and pop it when see }
 				Trace("Reducing to block\n");
 				symt.pushStack("nowScope");
 	 			} 
@@ -457,7 +464,7 @@ block:
 	 }
 	 ;
 conditionl:
-	IF LEFT_PARENT bool_exp RIGHT_PARENT block{
+	IF LEFT_PARENT bool_exp RIGHT_PARENT block{												//if else
 		Trace("Reducing to conditionl\n");
 	}
 	|
@@ -466,12 +473,12 @@ conditionl:
 	}
 	;
 loop:
-	WHILE LEFT_PARENT bool_exp RIGHT_PARENT block{
+	WHILE LEFT_PARENT bool_exp RIGHT_PARENT block{									//while loop
 		Trace("Reducing to loop\n");
 	}
 	;
-type:		
-		BOOL{
+type:						
+		BOOL{																	//for type, def int,float ,bool,string
 			Trace("Reducing to type bool\n");
 			$$.token_type =T_BOOL;
 		} |
@@ -491,7 +498,7 @@ type:
 %%
 
 
-int yyerror(const char *s){
+int yyerror(const char *s){                     							//when error print error
 	//fprintf("%s\n",yytext);
     fprintf(stderr, "Error: %s\n", s);
 	exit(0);
