@@ -50,7 +50,7 @@ SymbolTables symt = SymbolTables();
 %token BOOL
 %token FLOAT
 
-%type<Token> exp arr_declared type interger_exp real_exp string_exp bool_exp
+%type<Token> exp arr_declared type interger_exp real_exp string_exp bool_exp func_invoke
 
 
 
@@ -92,29 +92,52 @@ func_declared:
 			func_dec func_declared{Trace("Reducing to func_declared\n");}
 			;
 func_dec:
-			FN IDENTIFIER LEFT_PARENT  RIGHT_PARENT funscope{ 
-				Trace("Reducing to funct_dec\n"); 
+			FN IDENTIFIER LEFT_PARENT { 
+										Trace("Reducing to funct_dec\n");
+										varentry v = func($2.sval,T_NO);
+										if(!symt.addvar(v)){
+											yyerror("Error: redefined");
+										} 
+										symt.pushStack($2.sval);
 			}
-			| 
-			FN IDENTIFIER LEFT_PARENT formal_argu RIGHT_PARENT funscope	{ 
-				Trace("Reducing to funct_dec\n"); 
+			formal_argu RIGHT_PARENT func_type
+			func_scope	{ 
+				Trace("Reducing to funct_dec\n");
+				symt.popStack(); 
 			}
+			;
+func_scope:
+		LEFT_BRACE content RIGHT_BRACE{
+			Trace("Reducing to func scope\n");
+		}
 		;
-funscope:
-		LEFT_BRACE RIGHT_BRACE{Trace("Reducing to function scope\n");} |
-		LEFT_BRACE funscopeCon RIGHT_BRACE{Trace("Reducing to function scope\n");} |
-		MINUS LARGER type LEFT_BRACE RIGHT_BRACE{Trace("Reducing to function scope\n");} |
-		MINUS LARGER type LEFT_BRACE funscopeCon RIGHT_BRACE{Trace("Reducing to function scope\n");}
-		;
-funscopeCon:
-		declared funscopeCon{Trace("Reducing to function scope content\n");} |
-		statements funscopeCon{Trace("Reducing to function scope content\n");} |
-		declared{Trace("Reducing to function scope content\n");} |
-		statements{Trace("Reducing to function scope content\n");}
+func_type:
+		MINUS LARGER type{
+			Trace("Reducing to func type -> type\n");
+			symt.funcIn($3.token_type);
+		} |
+		%empty{
+			Trace("Reducing to func type\n");
+		}
 		;
 formal_argu:
-		IDENTIFIER COLON type COMMA formal_argu |
-		IDENTIFIER COLON type
+		%empty{
+			Trace("Reducing to formal argu\n");
+		} |
+		IDENTIFIER COLON type COMMA formal_argu{
+			Trace("Reducing to formal argu\n");
+			varentry v = varNormal($1.sval,$3.token_type,false);
+			if(!symt.addvar(v)){
+				yyerror("Error: redefined");
+			}
+		} |
+		IDENTIFIER COLON type{
+			Trace("Reducing to formal argu 1\n");
+			varentry v = varNormal($1.sval,$3.token_type,false);
+			if(!symt.addvar(v)){
+				yyerror("Error: redefined");
+			}
+		}
 		;
 
 var_declared:
@@ -229,12 +252,6 @@ arr_declared:
 				yyerror("Error: redefined");
 		}
 		;
-scope:		
-		LEFT_BRACE content RIGHT_BRACE{
-			Trace("Reducing to scope\n");
-		} |
-		LEFT_BRACE  RIGHT_BRACE{Trace("Reducing to scope\n");}
-		;
 content:
 		declared content{
 			Trace("Reducing to content\n");
@@ -251,6 +268,10 @@ content:
 		statements{
 			Trace("Reducing to content\n");
 		}
+		|
+		%empty{
+			Trace("Reducing to content empty\n");
+		}
 		;
 statements:
 			statement statements{
@@ -264,9 +285,64 @@ statements:
 statement:
 		IDENTIFIER ASSIGN exp SEMICOLON{
 			Trace("Reducing to statement\n");
+			/*varentry v = symt.lookup($1.sval);
+			v.isInit = true;
+			if(v.type==T_WRONG){
+				yyerror("Error identifier not exist");
+			}
+			else if(v.type==T_INT){
+				v.data.ival = $3.ival;
+			}
+			else if(v.type==T_FLOAT && $3.token_type==T_INT){
+				v.data.fval = $3.ival;
+			}
+			else if(v.type!=$3.token_type){
+				yyerror("type not the same");
+			}
+			else if(v.type==T_BOOL){
+				v.data.bval = $3.bval;
+			}
+			else if(v.type==T_STR){
+				v.data.sval = $3.sval;
+			}
+			else if(v.type==T_FLOAT){
+				v.data.fval = $3.fval;
+			}
+			else if(v.type==T_NO){
+				v.type = $3.token_type;
+			}
+			symt.revVar(v);*/
 		} |
 		IDENTIFIER LEFT_BRACK interger_exp RIGHT_BRACK ASSIGN exp SEMICOLON{
 			Trace("Reducing to statement\n");
+			/*varentry v = symt.lookup($1.sval);
+			int index = $3.ival;
+			if($3.token_type!=T_INT){
+				yyerror("array index type wrong");
+			}
+			
+			if(v.type==T_WRONG)
+				yyerror("Error identifier not exist");
+			else if(!v.isArr)
+				yyerror("Error not array");
+			else if(index>=v.arrSize)
+				yyerror("Error out of range");
+			else{
+				v.isInit = ture;
+				if(v.type==T_FLOAT && $6.token_type==T_INT)
+					v.data.flArr[index]=$6.ival;
+				else if(v.type!=$6.token_type)
+					yyerror("type not the same");
+				else if(v.type==T_INT)
+					v.data.inArr[index]=$6.ival;
+				else if(v.type==T_STR)
+					v.data.stArr[index]=$6.sval;
+				else if(v.type==T_FLOAT)
+					v.data.flArr[index]=$6.fval;
+				else if(v.type==T_BOOL)
+					v.data.boArr[index]=$6.bval;
+				symt.revVar(v);
+			}*/
 		} |
 		PRINT exp SEMICOLON{
 			Trace("Reducing to statement\n");
@@ -296,6 +372,13 @@ statement:
 exp:
 	MINUS exp %prec UMINUS{
 		Trace("Reducing to exp\n");
+		/*$$=$2;
+		if($2.token_type==T_INT)
+			$2.ival = $2.ival*(-1);
+		else if($2.token_type==T_FLOAT)
+			$2.fval = $2.fval*(-1);
+		else	
+			yyerror("minus arg type error");*/
 	} |
 	exp PLUS exp{
 		Trace("Reducing to exp\n");
@@ -372,13 +455,13 @@ bool_exp:
 		exp LOGICAL_NOT exp{
 			Trace("Reducing to bool_exp\n");
 		} |
-		exp LARGEREQ{
-			Trace("Reducing to bool_exp\n");
+		exp LARGEREQ exp{
+			Trace("Reducing to bool_exp larger eq\n");
 		} |
-		exp LESSEQ{
-			Trace("Reducing to bool_exp\n");
+		exp LESSEQ exp{
+			Trace("Reducing to  less eq\n");
 		} |
-		exp NOTEQ{
+		exp NOTEQ exp{
 			Trace("Reducing to bool_exp\n");
 		} 
 		;
@@ -402,8 +485,13 @@ parameters:
 		}
 		;
 block:
-	 LEFT_BRACE statements RIGHT_BRACE{
-		 Trace("Reducing to block\n");
+	 LEFT_BRACE{
+				Trace("Reducing to block\n");
+				symt.pushStack("nowScope");
+	 			} 
+	 content RIGHT_BRACE{
+				Trace("Reducing to block\n");
+				symt.popStack();
 	 }
 	 ;
 conditionl:
@@ -442,6 +530,7 @@ type:
 
 
 int yyerror(const char *s){
+	//fprintf("%s\n",yytext);
     fprintf(stderr, "Error: %s\n", s);
 	exit(0);
 	return 0;
