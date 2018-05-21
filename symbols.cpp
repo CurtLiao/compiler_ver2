@@ -97,7 +97,7 @@ int SymbolTables::dumpTable(){
 		varentry v = Table.back().varentrys[i];
 		for(int k = 0;k < v.arrSize;k++){
 			if(k!=0){
-				std::cout<<"-----------"<<'\t';
+				std::cout<<"ARRAY:"<< k <<'\t'<<'\t';
 			}
 			else{
 				if(v.isfunc==true)

@@ -593,13 +593,13 @@ static const yytype_uint16 yyrline[] =
 {
        0,    72,    72,    76,    82,    83,    86,    87,    88,    91,
       92,    95,    95,   110,   115,   119,   124,   127,   134,   144,
-     150,   156,   174,   201,   220,   247,   256,   260,   264,   268,
-     272,   277,   281,   286,   316,   347,   350,   353,   356,   359,
-     362,   365,   368,   373,   383,   386,   389,   392,   395,   398,
-     401,   404,   407,   410,   413,   416,   419,   424,   429,   434,
-     437,   440,   443,   446,   449,   452,   455,   458,   461,   464,
-     469,   474,   479,   483,   488,   488,   498,   502,   507,   512,
-     516,   520,   524
+     150,   156,   174,   201,   220,   247,   275,   279,   283,   287,
+     291,   296,   300,   305,   335,   366,   369,   372,   375,   378,
+     381,   384,   387,   392,   402,   405,   408,   411,   414,   417,
+     420,   423,   426,   429,   432,   435,   438,   443,   448,   453,
+     456,   459,   462,   465,   468,   471,   474,   477,   480,   483,
+     488,   493,   498,   502,   507,   507,   517,   521,   526,   531,
+     535,   539,   543
 };
 #endif
 
@@ -1800,71 +1800,90 @@ yyreduce:
     {
 			Trace("Reducing to arr_declared\n");
 			varentry v = varArr((yyvsp[-6].Token).sval,(yyvsp[-4].Token).token_type,false,(yyvsp[-2].Token).ival);
+			int arrIndex = (yyvsp[-2].Token).ival;
+			if((yyvsp[-2].Token).token_type!=T_INT){
+				yyerror("Error array index type error");
+			}
+			if((yyvsp[-4].Token).token_type==T_INT){
+				v.data.inArr = new int[arrIndex];
+			}
+			else if((yyvsp[-4].Token).token_type==T_FLOAT){
+				v.data.flArr = new float[arrIndex];
+			}
+			else if((yyvsp[-4].Token).token_type==T_STR){
+				v.data.stArr = new char*[arrIndex];
+				for(int i =0;i<arrIndex;i++){
+					v.data.stArr[i][0] = '0';
+				}
+			}
+			else if((yyvsp[-4].Token).token_type==T_BOOL){
+				v.data.boArr = new bool[arrIndex];
+			}
 
 			if(!symt.addvar(v))
 				yyerror("Error: redefined");
 		}
-#line 1808 "y.tab.c" /* yacc.c:1646  */
+#line 1827 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 26:
-#line 256 "yaccpro2.y" /* yacc.c:1646  */
+#line 275 "yaccpro2.y" /* yacc.c:1646  */
     {
 			Trace("Reducing to content\n");
 		}
-#line 1816 "y.tab.c" /* yacc.c:1646  */
+#line 1835 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 27:
-#line 260 "yaccpro2.y" /* yacc.c:1646  */
+#line 279 "yaccpro2.y" /* yacc.c:1646  */
     {
 			Trace("Reducing to content\n");
 		}
-#line 1824 "y.tab.c" /* yacc.c:1646  */
+#line 1843 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 28:
-#line 264 "yaccpro2.y" /* yacc.c:1646  */
+#line 283 "yaccpro2.y" /* yacc.c:1646  */
     {
 			Trace("Reducing to content\n");
 		}
-#line 1832 "y.tab.c" /* yacc.c:1646  */
+#line 1851 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 29:
-#line 268 "yaccpro2.y" /* yacc.c:1646  */
+#line 287 "yaccpro2.y" /* yacc.c:1646  */
     {
 			Trace("Reducing to content\n");
 		}
-#line 1840 "y.tab.c" /* yacc.c:1646  */
+#line 1859 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 30:
-#line 272 "yaccpro2.y" /* yacc.c:1646  */
+#line 291 "yaccpro2.y" /* yacc.c:1646  */
     {
 			Trace("Reducing to content empty\n");
 		}
-#line 1848 "y.tab.c" /* yacc.c:1646  */
+#line 1867 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 31:
-#line 277 "yaccpro2.y" /* yacc.c:1646  */
+#line 296 "yaccpro2.y" /* yacc.c:1646  */
     {
 				Trace("Reducing to statements\n");
 			}
-#line 1856 "y.tab.c" /* yacc.c:1646  */
+#line 1875 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 32:
-#line 281 "yaccpro2.y" /* yacc.c:1646  */
+#line 300 "yaccpro2.y" /* yacc.c:1646  */
     {
 				Trace("Reducing to statements\n");
 			}
-#line 1864 "y.tab.c" /* yacc.c:1646  */
+#line 1883 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 33:
-#line 286 "yaccpro2.y" /* yacc.c:1646  */
+#line 305 "yaccpro2.y" /* yacc.c:1646  */
     {
 			Trace("Reducing to statement\n");
 			/*varentry v = symt.lookup($1.sval);
@@ -1895,11 +1914,11 @@ yyreduce:
 			}
 			symt.revVar(v);*/
 		}
-#line 1899 "y.tab.c" /* yacc.c:1646  */
+#line 1918 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 34:
-#line 316 "yaccpro2.y" /* yacc.c:1646  */
+#line 335 "yaccpro2.y" /* yacc.c:1646  */
     {
 			Trace("Reducing to statement\n");
 			/*varentry v = symt.lookup($1.sval);
@@ -1931,75 +1950,75 @@ yyreduce:
 				symt.revVar(v);
 			}*/
 		}
-#line 1935 "y.tab.c" /* yacc.c:1646  */
+#line 1954 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 35:
-#line 347 "yaccpro2.y" /* yacc.c:1646  */
+#line 366 "yaccpro2.y" /* yacc.c:1646  */
     {
 			Trace("Reducing to statement\n");
 		}
-#line 1943 "y.tab.c" /* yacc.c:1646  */
+#line 1962 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 36:
-#line 350 "yaccpro2.y" /* yacc.c:1646  */
+#line 369 "yaccpro2.y" /* yacc.c:1646  */
     {
 			Trace("Reducing to statement\n");
 		}
-#line 1951 "y.tab.c" /* yacc.c:1646  */
+#line 1970 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 37:
-#line 353 "yaccpro2.y" /* yacc.c:1646  */
+#line 372 "yaccpro2.y" /* yacc.c:1646  */
     {
 			Trace("Reducing to statement\n");
 		}
-#line 1959 "y.tab.c" /* yacc.c:1646  */
+#line 1978 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 38:
-#line 356 "yaccpro2.y" /* yacc.c:1646  */
+#line 375 "yaccpro2.y" /* yacc.c:1646  */
     {
 			Trace("Reducing to statement\n");
 		}
-#line 1967 "y.tab.c" /* yacc.c:1646  */
+#line 1986 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 39:
-#line 359 "yaccpro2.y" /* yacc.c:1646  */
+#line 378 "yaccpro2.y" /* yacc.c:1646  */
     {
 			Trace("Reducing to statement\n");
 		}
-#line 1975 "y.tab.c" /* yacc.c:1646  */
+#line 1994 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 40:
-#line 362 "yaccpro2.y" /* yacc.c:1646  */
+#line 381 "yaccpro2.y" /* yacc.c:1646  */
     {
 			Trace("Reducing to statement\n");
 		}
-#line 1983 "y.tab.c" /* yacc.c:1646  */
+#line 2002 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 41:
-#line 365 "yaccpro2.y" /* yacc.c:1646  */
+#line 384 "yaccpro2.y" /* yacc.c:1646  */
     {
 			Trace("Reducing to statement\n");
 		}
-#line 1991 "y.tab.c" /* yacc.c:1646  */
+#line 2010 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 42:
-#line 368 "yaccpro2.y" /* yacc.c:1646  */
+#line 387 "yaccpro2.y" /* yacc.c:1646  */
     {
 			Trace("Reducing to statement\n");
 		}
-#line 1999 "y.tab.c" /* yacc.c:1646  */
+#line 2018 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 43:
-#line 373 "yaccpro2.y" /* yacc.c:1646  */
+#line 392 "yaccpro2.y" /* yacc.c:1646  */
     {
 		Trace("Reducing to exp\n");
 		/*$$=$2;
@@ -2010,329 +2029,329 @@ yyreduce:
 		else	
 			yyerror("minus arg type error");*/
 	}
-#line 2014 "y.tab.c" /* yacc.c:1646  */
+#line 2033 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 44:
-#line 383 "yaccpro2.y" /* yacc.c:1646  */
+#line 402 "yaccpro2.y" /* yacc.c:1646  */
     {
 		Trace("Reducing to exp\n");
 	}
-#line 2022 "y.tab.c" /* yacc.c:1646  */
+#line 2041 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 45:
-#line 386 "yaccpro2.y" /* yacc.c:1646  */
+#line 405 "yaccpro2.y" /* yacc.c:1646  */
     {
 		Trace("Reducing to exp\n");
 	}
-#line 2030 "y.tab.c" /* yacc.c:1646  */
+#line 2049 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 46:
-#line 389 "yaccpro2.y" /* yacc.c:1646  */
+#line 408 "yaccpro2.y" /* yacc.c:1646  */
     {
 		Trace("Reducing to exp\n");
 	}
-#line 2038 "y.tab.c" /* yacc.c:1646  */
+#line 2057 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 47:
-#line 392 "yaccpro2.y" /* yacc.c:1646  */
+#line 411 "yaccpro2.y" /* yacc.c:1646  */
     {
 		Trace("Reducing to exp\n");
 	}
-#line 2046 "y.tab.c" /* yacc.c:1646  */
+#line 2065 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 48:
-#line 395 "yaccpro2.y" /* yacc.c:1646  */
+#line 414 "yaccpro2.y" /* yacc.c:1646  */
     {
 		Trace("Reducing to exp\n");
 	}
-#line 2054 "y.tab.c" /* yacc.c:1646  */
+#line 2073 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 49:
-#line 398 "yaccpro2.y" /* yacc.c:1646  */
+#line 417 "yaccpro2.y" /* yacc.c:1646  */
     {
 		Trace("Reducing to exp\n");
 	}
-#line 2062 "y.tab.c" /* yacc.c:1646  */
+#line 2081 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 50:
-#line 401 "yaccpro2.y" /* yacc.c:1646  */
+#line 420 "yaccpro2.y" /* yacc.c:1646  */
     {
 		Trace("Reducing to exp\n");
 	}
-#line 2070 "y.tab.c" /* yacc.c:1646  */
+#line 2089 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 51:
-#line 404 "yaccpro2.y" /* yacc.c:1646  */
+#line 423 "yaccpro2.y" /* yacc.c:1646  */
     {
 		Trace("Reducing to exp\n");
 	}
-#line 2078 "y.tab.c" /* yacc.c:1646  */
+#line 2097 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 52:
-#line 407 "yaccpro2.y" /* yacc.c:1646  */
+#line 426 "yaccpro2.y" /* yacc.c:1646  */
     {
 		Trace("Reducing to exp\n");
 	}
-#line 2086 "y.tab.c" /* yacc.c:1646  */
+#line 2105 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 53:
-#line 410 "yaccpro2.y" /* yacc.c:1646  */
+#line 429 "yaccpro2.y" /* yacc.c:1646  */
     {
 		Trace("Reducing to exp\n");
 	}
-#line 2094 "y.tab.c" /* yacc.c:1646  */
+#line 2113 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 54:
-#line 413 "yaccpro2.y" /* yacc.c:1646  */
+#line 432 "yaccpro2.y" /* yacc.c:1646  */
     {
 		Trace("Reducing to exp\n");
 	}
-#line 2102 "y.tab.c" /* yacc.c:1646  */
+#line 2121 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 55:
-#line 416 "yaccpro2.y" /* yacc.c:1646  */
+#line 435 "yaccpro2.y" /* yacc.c:1646  */
     {
 		Trace("Reducing to exp\n");
 	}
-#line 2110 "y.tab.c" /* yacc.c:1646  */
+#line 2129 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 56:
-#line 419 "yaccpro2.y" /* yacc.c:1646  */
+#line 438 "yaccpro2.y" /* yacc.c:1646  */
     {
 		Trace("Reducing to exp\n");
 	}
-#line 2118 "y.tab.c" /* yacc.c:1646  */
+#line 2137 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 57:
-#line 424 "yaccpro2.y" /* yacc.c:1646  */
+#line 443 "yaccpro2.y" /* yacc.c:1646  */
     {
 			Trace("Reducing to interger_exp\n");
 		}
-#line 2126 "y.tab.c" /* yacc.c:1646  */
+#line 2145 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 58:
-#line 429 "yaccpro2.y" /* yacc.c:1646  */
+#line 448 "yaccpro2.y" /* yacc.c:1646  */
     {
 			Trace("Reducing to real_exp\n");
 		}
-#line 2134 "y.tab.c" /* yacc.c:1646  */
+#line 2153 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 59:
-#line 434 "yaccpro2.y" /* yacc.c:1646  */
+#line 453 "yaccpro2.y" /* yacc.c:1646  */
     {
 			Trace("Reducing to bool_exp\n");
 		}
-#line 2142 "y.tab.c" /* yacc.c:1646  */
+#line 2161 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 60:
-#line 437 "yaccpro2.y" /* yacc.c:1646  */
+#line 456 "yaccpro2.y" /* yacc.c:1646  */
     {
 			Trace("Reducing to bool_exp\n");
 		}
-#line 2150 "y.tab.c" /* yacc.c:1646  */
+#line 2169 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 61:
-#line 440 "yaccpro2.y" /* yacc.c:1646  */
+#line 459 "yaccpro2.y" /* yacc.c:1646  */
     {
 			Trace("Reducing to bool_exp\n");
 		}
-#line 2158 "y.tab.c" /* yacc.c:1646  */
+#line 2177 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 62:
-#line 443 "yaccpro2.y" /* yacc.c:1646  */
+#line 462 "yaccpro2.y" /* yacc.c:1646  */
     {
 			Trace("Reducing to bool_exp\n");
 		}
-#line 2166 "y.tab.c" /* yacc.c:1646  */
+#line 2185 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 63:
-#line 446 "yaccpro2.y" /* yacc.c:1646  */
+#line 465 "yaccpro2.y" /* yacc.c:1646  */
     {
 			Trace("Reducing to bool_exp\n");
 		}
-#line 2174 "y.tab.c" /* yacc.c:1646  */
+#line 2193 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 64:
-#line 449 "yaccpro2.y" /* yacc.c:1646  */
+#line 468 "yaccpro2.y" /* yacc.c:1646  */
     {
 			Trace("Reducing to bool_exp\n");
 		}
-#line 2182 "y.tab.c" /* yacc.c:1646  */
+#line 2201 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 65:
-#line 452 "yaccpro2.y" /* yacc.c:1646  */
+#line 471 "yaccpro2.y" /* yacc.c:1646  */
     {
 			Trace("Reducing to bool_exp\n");
 		}
-#line 2190 "y.tab.c" /* yacc.c:1646  */
+#line 2209 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 66:
-#line 455 "yaccpro2.y" /* yacc.c:1646  */
+#line 474 "yaccpro2.y" /* yacc.c:1646  */
     {
 			Trace("Reducing to bool_exp\n");
 		}
-#line 2198 "y.tab.c" /* yacc.c:1646  */
+#line 2217 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 67:
-#line 458 "yaccpro2.y" /* yacc.c:1646  */
+#line 477 "yaccpro2.y" /* yacc.c:1646  */
     {
 			Trace("Reducing to bool_exp larger eq\n");
 		}
-#line 2206 "y.tab.c" /* yacc.c:1646  */
+#line 2225 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 68:
-#line 461 "yaccpro2.y" /* yacc.c:1646  */
+#line 480 "yaccpro2.y" /* yacc.c:1646  */
     {
 			Trace("Reducing to  less eq\n");
 		}
-#line 2214 "y.tab.c" /* yacc.c:1646  */
+#line 2233 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 69:
-#line 464 "yaccpro2.y" /* yacc.c:1646  */
+#line 483 "yaccpro2.y" /* yacc.c:1646  */
     {
 			Trace("Reducing to bool_exp\n");
 		}
-#line 2222 "y.tab.c" /* yacc.c:1646  */
+#line 2241 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 70:
-#line 469 "yaccpro2.y" /* yacc.c:1646  */
+#line 488 "yaccpro2.y" /* yacc.c:1646  */
     {
 			Trace("Reducing to string_exp\n");
 		}
-#line 2230 "y.tab.c" /* yacc.c:1646  */
+#line 2249 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 71:
-#line 474 "yaccpro2.y" /* yacc.c:1646  */
+#line 493 "yaccpro2.y" /* yacc.c:1646  */
     {
 			Trace("Reducing to func_invoke\n");
 		}
-#line 2238 "y.tab.c" /* yacc.c:1646  */
+#line 2257 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 72:
-#line 479 "yaccpro2.y" /* yacc.c:1646  */
+#line 498 "yaccpro2.y" /* yacc.c:1646  */
     {
 			Trace("Reducing to parameters\n");
 		}
-#line 2246 "y.tab.c" /* yacc.c:1646  */
+#line 2265 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 73:
-#line 483 "yaccpro2.y" /* yacc.c:1646  */
+#line 502 "yaccpro2.y" /* yacc.c:1646  */
     {
 			Trace("Reducing to parameters\n");
 		}
-#line 2254 "y.tab.c" /* yacc.c:1646  */
+#line 2273 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 74:
-#line 488 "yaccpro2.y" /* yacc.c:1646  */
+#line 507 "yaccpro2.y" /* yacc.c:1646  */
     {
 				Trace("Reducing to block\n");
 				symt.pushStack("nowScope");
 	 			}
-#line 2263 "y.tab.c" /* yacc.c:1646  */
+#line 2282 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 75:
-#line 492 "yaccpro2.y" /* yacc.c:1646  */
+#line 511 "yaccpro2.y" /* yacc.c:1646  */
     {
 				Trace("Reducing to block\n");
 				symt.popStack();
 	 }
-#line 2272 "y.tab.c" /* yacc.c:1646  */
+#line 2291 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 76:
-#line 498 "yaccpro2.y" /* yacc.c:1646  */
+#line 517 "yaccpro2.y" /* yacc.c:1646  */
     {
 		Trace("Reducing to conditionl\n");
 	}
-#line 2280 "y.tab.c" /* yacc.c:1646  */
+#line 2299 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 77:
-#line 502 "yaccpro2.y" /* yacc.c:1646  */
+#line 521 "yaccpro2.y" /* yacc.c:1646  */
     {
 		Trace("Reducing to conditionl\n");
 	}
-#line 2288 "y.tab.c" /* yacc.c:1646  */
+#line 2307 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 78:
-#line 507 "yaccpro2.y" /* yacc.c:1646  */
+#line 526 "yaccpro2.y" /* yacc.c:1646  */
     {
 		Trace("Reducing to loop\n");
 	}
-#line 2296 "y.tab.c" /* yacc.c:1646  */
+#line 2315 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 79:
-#line 512 "yaccpro2.y" /* yacc.c:1646  */
+#line 531 "yaccpro2.y" /* yacc.c:1646  */
     {
 			Trace("Reducing to type\n");
 			(yyval.Token).token_type =T_BOOL;
 		}
-#line 2305 "y.tab.c" /* yacc.c:1646  */
+#line 2324 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 80:
-#line 516 "yaccpro2.y" /* yacc.c:1646  */
+#line 535 "yaccpro2.y" /* yacc.c:1646  */
     {
 			Trace("Reducing to type\n");
 			(yyval.Token).token_type =T_INT;
 		}
-#line 2314 "y.tab.c" /* yacc.c:1646  */
+#line 2333 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 81:
-#line 520 "yaccpro2.y" /* yacc.c:1646  */
+#line 539 "yaccpro2.y" /* yacc.c:1646  */
     {
 			Trace("Reducing to type\n");
 			(yyval.Token).token_type =T_STR;
 		}
-#line 2323 "y.tab.c" /* yacc.c:1646  */
+#line 2342 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 82:
-#line 524 "yaccpro2.y" /* yacc.c:1646  */
+#line 543 "yaccpro2.y" /* yacc.c:1646  */
     {
 			Trace("Reducing to type\n");
 			(yyval.Token).token_type =T_FLOAT;
 		}
-#line 2332 "y.tab.c" /* yacc.c:1646  */
+#line 2351 "y.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 2336 "y.tab.c" /* yacc.c:1646  */
+#line 2355 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -2560,7 +2579,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 529 "yaccpro2.y" /* yacc.c:1906  */
+#line 548 "yaccpro2.y" /* yacc.c:1906  */
 
 
 

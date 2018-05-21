@@ -247,6 +247,25 @@ arr_declared:
 		LET MUT IDENTIFIER LEFT_BRACK type COMMA interger_exp RIGHT_BRACK SEMICOLON{
 			Trace("Reducing to arr_declared\n");
 			varentry v = varArr($3.sval,$5.token_type,false,$7.ival);
+			int arrIndex = $7.ival;
+			if($7.token_type!=T_INT){
+				yyerror("Error array index type error");
+			}
+			if($5.token_type==T_INT){
+				v.data.inArr = new int[arrIndex];
+			}
+			else if($5.token_type==T_FLOAT){
+				v.data.flArr = new float[arrIndex];
+			}
+			else if($5.token_type==T_STR){
+				v.data.stArr = new char*[arrIndex];
+				for(int i =0;i<arrIndex;i++){
+					v.data.stArr[i][0] = '0';
+				}
+			}
+			else if($5.token_type==T_BOOL){
+				v.data.boArr = new bool[arrIndex];
+			}
 
 			if(!symt.addvar(v))
 				yyerror("Error: redefined");
